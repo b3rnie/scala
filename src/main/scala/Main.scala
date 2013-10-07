@@ -118,10 +118,10 @@ object Main{
 }
 
 class ParserCombinators extends RegexParsers{
-  def rules     : Parser[Any] = rep(rule)
-  def rule                    = rule_name ~
-                                rep(rule_entry_exit) ~
-                                rep(rule_transition) ^^
+  def rules:Parser[List[Rule]] = rep(rule)
+  def rule                     = rule_name ~
+                                 rep(rule_entry_exit) ~
+                                 rep(rule_transition) ^^
     {case rulename~entry_exit~transitions =>{
       println(rulename)
       println(entry_exit)
@@ -130,6 +130,18 @@ class ParserCombinators extends RegexParsers{
         //(rulename, entry_exit, transitions)
         Map('rulename -> rulename,
             'transitions -> transitions)
+      var OnEntry = List[String]()
+      var OnExit  = List[String]()
+      entry_exit.foreach((x) =>{
+        x match{
+          case ("on_entry",l) => OnEntry = OnEntry ::: l
+          case ("on_exit", l) => OnExit  = OnExit ::: l
+          case e              => throw new Exception(e.toString)
+        }
+      })
+      println(OnEntry)
+      println(OnExit)
+      new Rule(rulename, entry_exit, transitions)
     }
     }
   def rule_name       = "[" ~> rulename <~ "]"
@@ -142,5 +154,12 @@ class ParserCombinators extends RegexParsers{
 
   def name     = """[a-z][a-z0-9_]*""".r
   def rulename = """[A-Z][A-Z0-9_]*""".r
+}
+
+
+class Rule(r:String, ee:Any, t:List[Any]){
+  val rulename    = r
+  val entry_exit  = ee
+  val transitions = t
 }
 
